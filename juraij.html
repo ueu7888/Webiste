@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Juraij – Books & English</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #fdf6ec; --warm: #f5ead8;
+      --gold: #c9893a; --gold-light: #e8b46a;
+      --brown: #5a3e28; --dark: #2c1a0e;
+      --text: #3d2b1a; --muted: #7a5c40; --white: #fff;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Lora', serif; background: var(--cream); color: var(--text); overflow-x: hidden; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 40px;
+      background: rgba(253,246,236,0.95); backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,137,58,.18);
+    }
+    .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; color: var(--brown); letter-spacing: -1px; }
+    .logo span { color: var(--gold); }
+    .nav-right { display: flex; align-items: center; gap: 24px; }
+    nav ul { list-style: none; display: flex; gap: 24px; }
+    nav ul a { font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; transition: color .2s; }
+    nav ul a:hover { color: var(--gold); }
+    .btn-signin {
+      background: var(--gold); color: #fff; border: none; cursor: pointer;
+      padding: 9px 22px; border-radius: 8px; font-size: 14px; font-weight: 600;
+      font-family: 'Lora', serif; transition: background .2s, transform .2s;
+    }
+    .btn-signin:hover { background: var(--brown); transform: translateY(-1px); }
+    .user-chip {
+      display: none; align-items: center; gap: 10px;
+      background: var(--warm); padding: 7px 16px; border-radius: 20px;
+      font-size: 14px; font-weight: 600; color: var(--brown);
+    }
+    .user-chip .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--gold); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+    }
+    .logout-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 12px; margin-left: 4px; text-decoration: underline; font-family: 'Lora', serif; }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 999;
+      background: rgba(44,26,14,.55); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 20px; padding: 44px 40px;
+      width: 90%; max-width: 420px;
+      box-shadow: 0 24px 80px rgba(44,26,14,.3);
+      animation: popIn .3s ease; position: relative;
+    }
+    @keyframes popIn { from{transform:scale(.9);opacity:0} to{transform:scale(1);opacity:1} }
+    .modal h2 { font-family: 'Playfair Display', serif; font-size: 28px; color: var(--brown); }
+    .modal > p { color: var(--muted); font-size: 14px; margin-top: 6px; font-style: italic; }
+    .modal-tabs { display: flex; margin: 24px 0 20px; border-bottom: 2px solid var(--warm); }
+    .modal-tab { flex: 1; text-align: center; padding: 10px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--muted); border-bottom: 3px solid transparent; margin-bottom: -2px; transition: color .2s, border-color .2s; }
+    .modal-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .modal input { width: 100%; padding: 12px 16px; border: 2px solid var(--warm); border-radius: 10px; font-family: 'Lora', serif; font-size: 14px; color: var(--text); outline: none; margin-bottom: 14px; transition: border-color .2s; }
+    .modal input:focus { border-color: var(--gold); }
+    .modal input::placeholder { color: var(--muted); }
+    .skip-txt { text-align: center; font-size: 13px; color: var(--muted); margin-top: 14px; cursor: pointer; }
+    .skip-txt span { color: var(--gold); font-weight: 700; text-decoration: underline; }
+    .modal-close { position: absolute; top: 16px; right: 20px; font-size: 22px; cursor: pointer; color: var(--muted); background: none; border: none; }
+    .btn-full { width: 100%; padding: 13px; border-radius: 10px; background: var(--gold); color: #fff; border: none; font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .2s; }
+    .btn-full:hover { background: var(--brown); }
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      padding: 120px 24px 80px;
+      background: radial-gradient(ellipse 80% 60% at 50% 20%, rgba(232,180,106,.18), transparent 70%), var(--cream);
+      position: relative; overflow: hidden;
+    }
+    .hero::before { content:'📚'; position:absolute; top:100px; left:8%; font-size:90px; opacity:.06; animation:float 6s ease-in-out infinite; }
+    .hero::after { content:'✦'; position:absolute; bottom:140px; right:10%; font-size:80px; color:var(--gold); opacity:.12; animation:float 8s ease-in-out infinite reverse; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+    .hero-badge { display:inline-block; background:var(--gold); color:#fff; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; padding:6px 18px; border-radius:20px; margin-bottom:28px; animation:fadeUp .6s ease both; }
+    .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(56px,10vw,110px); font-weight:900; line-height:1; color:var(--brown); letter-spacing:-3px; animation:fadeUp .7s ease .1s both; }
+    .hero h1 em { color:var(--gold); font-style:normal; }
+    .hero p { max-width:520px; margin:24px auto 0; font-size:18px; color:var(--muted); line-height:1.7; font-style:italic; animation:fadeUp .7s ease .2s both; }
+    .hero-btns { display:flex; gap:16px; margin-top:44px; flex-wrap:wrap; justify-content:center; animation:fadeUp .7s ease .3s both; }
+    .btn { display:inline-block; padding:14px 32px; border-radius:8px; font-size:15px; font-weight:600; text-decoration:none; cursor:pointer; border:none; transition:transform .2s,box-shadow .2s; font-family:'Lora',serif; }
+    .btn:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(90,62,40,.15); }
+    .btn-primary { background:var(--gold); color:#fff; }
+    .btn-outline { background:transparent; color:var(--brown); border:2px solid var(--brown); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    /* STATS */
+    .stats-row { display:flex; gap:40px; justify-content:center; flex-wrap:wrap; padding:60px 48px; background:var(--brown); }
+    .stat { text-align:center; color:#fff; }
+    .stat-num { font-family:'Playfair Display',serif; font-size:52px; font-weight:900; color:var(--gold-light); }
+    .stat-label { font-size:13px; opacity:.75; margin-top:4px; letter-spacing:1px; text-transform:uppercase; }
+
+    /* SECTION */
+    .section { padding:90px 48px; max-width:1200px; margin:0 auto; }
+    .section-title { text-align:center; margin-bottom:56px; }
+    .section-title h2 { font-family:'Playfair Display',serif; font-size:clamp(30px,5vw,52px); font-weight:900; color:var(--brown); }
+    .section-title p { color:var(--muted); font-style:italic; margin-top:10px; font-size:15px; }
+    .divider { width:60px; height:3px; background:var(--gold); margin:14px auto 0; border-radius:2px; }
+
+    /* SEARCH */
+    .search-wrap { display:flex; justify-content:center; margin-bottom:48px; }
+    .search-box { display:flex; align-items:center; background:#fff; border:2px solid rgba(201,137,58,.25); border-radius:50px; overflow:hidden; width:100%; max-width:560px; box-shadow:0 4px 16px rgba(90,62,40,.08); }
+    .search-box input { flex:1; border:none; outline:none; padding:14px 20px; font-family:'Lora',serif; font-size:15px; color:var(--text); background:transparent; }
+    .search-box input::placeholder { color:var(--muted); }
+    .search-box button { background:var(--gold); border:none; color:#fff; padding:14px 22px; cursor:pointer; font-size:16px; transition:background .2s; }
+    .search-box button:hover { background:var(--brown); }
+
+    /* BOOKS */
+    .books-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:26px; }
+    .book-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(90,62,40,.08); transition:transform .3s,box-shadow .3s; cursor:pointer; }
+    .book-card:hover { transform:translateY(-8px); box-shadow:0 16px 40px rgba(90,62,40,.16); }
+    .book-cover { height:190px; display:flex; align-items:center; justify-content:center; font-size:60px; position:relative; }
+    .book-cover::after { content:'PDF'; position:absolute; top:12px; right:12px; background:var(--gold); color:#fff; font-size:10px; font-weight:700; letter-spacing:1px; padding:3px 8px; border-radius:4px; }
+    .book-info { padding:16px 18px 20px; }
+    .book-info h3 { font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:var(--brown); }
+    .book-info .author { font-size:12px; color:var(--muted); margin-top:3px; font-style:italic; }
+    .dl-btn { display:inline-block; margin-top:12px; font-size:12px; font-weight:700; color:#fff; background:var(--gold); padding:7px 16px; border-radius:6px; text-decoration:none; transition:background .2s; }
+    .dl-btn:hover { background:var(--brown); }
+
+    /* TOPICS */
+    .topics-bg { background:var(--warm); }
+    .topics-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:22px; }
+    .topic-card { background:#fff; border-radius:14px; padding:26px; border-left:5px solid var(--gold); box-shadow:0 4px 16px rgba(90,62,40,.07); transition:transform .3s,box-shadow .3s; }
+    .topic-card:hover { transform:translateY(-5px); box-shadow:0 12px 32px rgba(90,62,40,.14); }
+    .topic-icon { font-size:34px; margin-bottom:12px; }
+    .topic-card h3 { font-family:'Playfair Display',serif; font-size:19px; color:var(--brown); font-weight:700; }
+    .topic-card p { font-size:13px; color:var(--muted); margin-top:7px; line-height:1.6; }
+    .topic-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+    .tag { background:var(--warm); color:var(--gold); font-size:10px; font-weight:700; letter-spacing:.5px; padding:3px 9px; border-radius:20px; text-transform:uppercase; }
+
+    /* AI CHAT */
+    .ai-section { background:var(--dark); padding:90px 48px; }
+    .ai-inner { max-width:760px; margin:0 auto; }
+    .ai-inner .section-title h2 { color:var(--gold-light); }
+    .ai-inner .section-title p { color:rgba(255,255,255,.5); }
+    .ai-inner .divider { background:var(--gold-light); }
+    .chat-box { background:rgba(255,255,255,.05); border:1px solid rgba(232,180,106,.2); border-radius:18px; overflow:hidden; }
+    .chat-suggestions { display:flex; flex-wrap:wrap; gap:8px; padding:18px 20px 0; }
+    .sugg-btn { background:rgba(232,180,106,.1); color:var(--gold-light); border:1px solid rgba(232,180,106,.22); border-radius:20px; padding:6px 14px; font-size:12px; cursor:pointer; font-family:'Lora',serif; transition:background .2s; }
+    .sugg-btn:hover { background:rgba(232,180,106,.25); }
+    .chat-messages { min-height:280px; max-height:380px; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+    .chat-messages::-webkit-scrollbar { width:5px; }
+    .chat-messages::-webkit-scrollbar-thumb { background:rgba(232,180,106,.3); border-radius:3px; }
+    .msg { max-width:82%; padding:12px 16px; border-radius:14px; font-size:14px; line-height:1.65; white-space:pre-wrap; }
+    .msg.user { background:var(--gold); color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+    .msg.ai { background:rgba(255,255,255,.09); color:rgba(255,255,255,.88); align-self:flex-start; border-bottom-left-radius:4px; }
+    .ai-label { font-size:10px; font-weight:700; letter-spacing:1px; color:var(--gold-light); text-transform:uppercase; margin-bottom:5px; }
+    .typing { display:none; align-self:flex-start; padding:14px 18px; background:rgba(255,255,255,.07); border-radius:14px; border-bottom-left-radius:4px; }
+    .typing span { display:inline-block; width:7px; height:7px; background:var(--gold); border-radius:50%; animation:bounce 1.2s infinite; margin:0 2px; }
+    .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+    @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+    .chat-input-row { display:flex; border-top:1px solid rgba(232,180,106,.15); }
+    .chat-input-row input { flex:1; background:transparent; border:none; outline:none; padding:16px 20px; color:#fff; font-family:'Lora',serif; font-size:14px; }
+    .chat-input-row input::placeholder { color:rgba(255,255,255,.3); }
+    .chat-send { background:var(--gold); border:none; color:#fff; padding:16px 24px; cursor:pointer; font-size:18px; transition:background .2s; }
+    .chat-send:hover { background:var(--gold-light); }
+
+    /* FOOTER */
+    footer { background:var(--dark); color:rgba(255,255,255,.45); text-align:center; padding:36px 24px; font-size:13px; border-top:1px solid rgba(232,180,106,.1); }
+    footer .logo { color:var(--gold-light); font-size:22px; margin-bottom:10px; display:block; }
+
+    @media(max-width:700px) {
+      nav { padding:14px 16px; }
+      nav ul { gap:12px; }
+      .section { padding:60px 18px; }
+      .ai-section { padding:60px 18px; }
+      .stats-row { padding:44px 18px; gap:24px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Welcome to Juraij ✦</h2>
+    <p>Sign in or create your free account</p>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchTab('login')">Sign In</div>
+      <div class="modal-tab" onclick="switchTab('signup')">Sign Up</div>
+    </div>
+    <div class="form-panel active" id="loginPanel">
+      <input type="email" id="loginEmail" placeholder="Your email address"/>
+      <input type="password" id="loginPass" placeholder="Password"/>
+      <button class="btn-full" onclick="doLogin()">Sign In →</button>
+      <p class="skip-txt" onclick="closeModal()">Just browsing? <span>Skip & Continue</span></p>
+    </div>
+    <div class="form-panel" id="signupPanel">
+      <input type="text" id="signupName" placeholder="Your name"/>
+      <input type="email" id="signupEmail" placeholder="Email address"/>
+      <input type="password" id="signupPass" placeholder="Create a password"/>
+      <button class="btn-full" onclick="doSignup()">Create Account →</button>
+      <p class="skip-txt" onclick="closeModal()">Just browsing? <span>Skip & Continue</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Jura<span>ij</span></div>
+  <div class="nav-right">
+    <ul>
+      <li><a href="#books">Books</a></li>
+      <li><a href="#english">English</a></li>
+      <li><a href="#ai">AI Chat</a></li>
+    </ul>
+    <button class="btn-signin" id="signInBtn" onclick="openModal()">Sign In</button>
+    <div class="user-chip" id="userChip">
+      <div class="avatar" id="userAvatar">J</div>
+      <span id="userName">Guest</span>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">✦ Your Learning Library ✦</div>
+  <h1>Jura<em>ij</em></h1>
+  <p>Discover books, download PDFs, master English — and chat with AI. All free.</p>
+  <div class="hero-btns">
+    <a href="#books" class="btn btn-primary">📚 Browse Books</a>
+    <a href="#ai" class="btn btn-outline">🤖 Ask AI</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-row">
+  <div class="stat"><div class="stat-num">50+</div><div class="stat-label">Books</div></div>
+  <div class="stat"><div class="stat-num">20+</div><div class="stat-label">English Topics</div></div>
+  <div class="stat"><div class="stat-num">AI</div><div class="stat-label">Assistant</div></div>
+  <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Free</div></div>
+</div>
+
+<!-- BOOKS -->
+<div id="books">
+  <div class="section">
+    <div class="section-title">
+      <h2>Book Library</h2>
+      <p>Search any book — click to open Google PDF results instantly</p>
+      <div class="divider"></div>
+    </div>
+    <div class="search-wrap">
+      <div class="search-box">
+        <input type="text" id="googleSearchInput" placeholder="🔎 Search any book PDF on Google..."/>
+        <button onclick="googleSearchPDF()">Search</button>
+      </div>
+    </div>
+    <div class="books-grid" id="booksGrid"></div>
+  </div>
+</div>
+
+<!-- ENGLISH TOPICS -->
+<div id="english" class="topics-bg">
+  <div class="section">
+    <div class="section-title">
+      <h2>English Topics</h2>
+      <p>Learn step by step — beginner to advanced</p>
+      <div class="divider"></div>
+    </div>
+    <div class="topics-grid">
+      <div class="topic-card"><div class="topic-icon">🔤</div><h3>Grammar</h3><p>Tenses, articles, prepositions, conjunctions — explained with examples.</p><div class="topic-tags"><span class="tag">Tenses</span><span class="tag">Nouns</span><span class="tag">Verbs</span></div></div>
+      <div class="topic-card"><div class="topic-icon">💬</div><h3>Spoken English</h3><p>Daily conversations, phrases and dialogues to speak with confidence.</p><div class="topic-tags"><span class="tag">Phrases</span><span class="tag">Dialogues</span></div></div>
+      <div class="topic-card"><div class="topic-icon">📝</div><h3>Writing Skills</h3><p>Essays, letters, emails — write correctly and professionally every time.</p><div class="topic-tags"><span class="tag">Essays</span><span class="tag">Emails</span></div></div>
+      <div class="topic-card"><div class="topic-icon">📖</div><h3>Vocabulary</h3><p>1000+ important words with meanings, examples and real usage.</p><div class="topic-tags"><span class="tag">Words</span><span class="tag">Idioms</span><span class="tag">Phrases</span></div></div>
+      <div class="topic-card"><div class="topic-icon">🎧</div><h3>Listening Skills</h3><p>Improve listening through stories, podcasts, and exercises.</p><div class="topic-tags"><span class="tag">Stories</span><span class="tag">Exercises</span></div></div>
+      <div class="topic-card"><div class="topic-icon">🏆</div><h3>IELTS / Test Prep</h3><p>Practice for IELTS, TOEFL, and other English exams with real materials.</p><div class="topic-tags"><span class="tag">IELTS</span><span class="tag">TOEFL</span><span class="tag">MCQs</span></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CHAT -->
+<div id="ai" class="ai-section">
+  <div class="ai-inner">
+    <div class="section-title">
+      <h2>🤖 AI English Assistant</h2>
+      <p>Ask anything about English, grammar, vocabulary, or books — AI answers instantly!</p>
+      <div class="divider"></div>
+    </div>
+    <div class="chat-box">
+      <div class="chat-suggestions">
+        <button class="sugg-btn" onclick="sendSugg(this)">What is present perfect tense?</button>
+        <button class="sugg-btn" onclick="sendSugg(this)">Give me 5 daily English phrases</button>
+        <button class="sugg-btn" onclick="sendSugg(this)">Affect vs Effect — difference?</button>
+        <button class="sugg-btn" onclick="sendSugg(this)">How to write a formal email?</button>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg ai">
+          <div class="ai-label">✦ Juraij AI</div>
+          Assalam u Alaikum! 👋 I'm your English learning assistant. Ask me anything — grammar, vocabulary, writing tips, or book recommendations!
+        </div>
+      </div>
+      <div class="typing" id="typingEl"><span></span><span></span><span></span></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask me anything about English..." onkeydown="if(event.key==='Enter')sendChat()"/>
+        <button class="chat-send" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span class="logo">Juraij ✦</span>
+  <p>Made with ❤️ for readers and learners &nbsp;|&nbsp; All books for educational use only</p>
+  <p style="margin-top:8px;font-size:11px;opacity:.35;">© 2026 Juraij. Free & Open for everyone.</p>
+</footer>
+
+<script>
+/* BOOKS */
+const books = [
+  {e:'📖',bg:'linear-gradient(135deg,#fdebd0,#f5cba7)',t:'English Grammar in Use',a:'Raymond Murphy'},
+  {e:'📗',bg:'linear-gradient(135deg,#d5f5e3,#a9dfbf)',t:'Oxford Word Skills',a:'Ruth Gairns'},
+  {e:'📘',bg:'linear-gradient(135deg,#d6eaf8,#a9cce3)',t:'Speak English Fluently',a:'AJ Hoge'},
+  {e:'📕',bg:'linear-gradient(135deg,#fde8e8,#f1948a)',t:'The Power of Now',a:'Eckhart Tolle'},
+  {e:'📒',bg:'linear-gradient(135deg,#fef9e7,#f9e79f)',t:'Atomic Habits',a:'James Clear'},
+  {e:'📙',bg:'linear-gradient(135deg,#f5eef8,#d7bde2)',t:'Rich Dad Poor Dad',a:'Robert Kiyosaki'},
+  {e:'📚',bg:'linear-gradient(135deg,#eafaf1,#82e0aa)',t:'Think and Grow Rich',a:'Napoleon Hill'},
+  {e:'📓',bg:'linear-gradient(135deg,#fdfefe,#aed6f1)',t:'How to Win Friends',a:'Dale Carnegie'},
+  {e:'📖',bg:'linear-gradient(135deg,#fce4ec,#f48fb1)',t:'The Alchemist',a:'Paulo Coelho'},
+  {e:'📘',bg:'linear-gradient(135deg,#e8eaf6,#9fa8da)',t:'7 Habits of Highly Effective People',a:'Stephen Covey'},
+];
+
+const obs = new IntersectionObserver(en => en.forEach(e => { if(e.isIntersecting){e.target.style.opacity=1;e.target.style.transform='translateY(0)';} }), {threshold:.08});
+
+function gURL(q){ return 'https://www.google.com/search?q='+encodeURIComponent(q+' filetype:pdf'); }
+
+function renderBooks(list){
+  const g = document.getElementById('booksGrid');
+  g.innerHTML = list.map(b=>`
+    <div class="book-card">
+      <div class="book-cover" style="background:${b.bg}">${b.e}</div>
+      <div class="book-info">
+        <h3>${b.t}</h3>
+        <p class="author">${b.a}</p>
+        <a class="dl-btn" href="${gURL(b.t)}" target="_blank" rel="noopener">📥 Get PDF →</a>
+      </div>
+    </div>`).join('');
+  g.querySelectorAll('.book-card').forEach((el,i)=>{
+    el.style.opacity=0; el.style.transform='translateY(28px)';
+    el.style.transition=`opacity .45s ease ${i*.06}s,transform .45s ease ${i*.06}s,box-shadow .3s`;
+    obs.observe(el);
+  });
+}
+renderBooks(books);
+
+document.querySelectorAll('.topic-card').forEach((el,i)=>{
+  el.style.opacity=0; el.style.transform='translateY(28px)';
+  el.style.transition=`opacity .45s ease ${i*.07}s,transform .45s ease ${i*.07}s,box-shadow .3s`;
+  obs.observe(el);
+});
+
+/* PDF GOOGLE SEARCH */
+function googleSearchPDF(){
+  const q = document.getElementById('googleSearchInput').value.trim();
+  if(!q) return;
+  window.open(gURL(q),'_blank');
+}
+document.getElementById('googleSearchInput').addEventListener('keydown',e=>{ if(e.key==='Enter') googleSearchPDF(); });
+document.getElementById('googleSearchInput').addEventListener('input',function(){
+  const q=this.value.toLowerCase().trim();
+  renderBooks(q ? books.filter(b=>b.t.toLowerCase().includes(q)||b.a.toLowerCase().includes(q)) : books);
+});
+
+/* AUTH */
+function openModal(){ document.getElementById('authModal').classList.add('open'); }
+function closeModal(){ document.getElementById('authModal').classList.remove('open'); }
+function switchTab(t){
+  document.querySelectorAll('.modal-tab').forEach((el,i)=>el.classList.toggle('active',(t==='login'&&i===0)||(t==='signup'&&i===1)));
+  document.getElementById('loginPanel').classList.toggle('active',t==='login');
+  document.getElementById('signupPanel').classList.toggle('active',t==='signup');
+}
+function setUser(name){
+  document.getElementById('signInBtn').style.display='none';
+  const chip=document.getElementById('userChip'); chip.style.display='flex';
+  document.getElementById('userName').textContent=name;
+  document.getElementById('userAvatar').textContent=name[0].toUpperCase();
+  closeModal();
+}
+function doLogin(){
+  const e=document.getElementById('loginEmail').value.trim();
+  if(!e){alert('Please enter email.');return;} setUser(e.split('@')[0]);
+}
+function doSignup(){
+  const n=document.getElementById('signupName').value.trim();
+  if(!n){alert('Please enter your name.');return;} setUser(n);
+}
+function doLogout(){
+  document.getElementById('signInBtn').style.display='';
+  document.getElementById('userChip').style.display='none';
+}
+document.getElementById('authModal').addEventListener('click',function(e){ if(e.target===this) closeModal(); });
+
+/* AI CHAT */
+const chatMessages = document.getElementById('chatMessages');
+const typingEl = document.getElementById('typingEl');
+
+function appendMsg(text, role){
+  const d=document.createElement('div'); d.className='msg '+role;
+  if(role==='ai') d.innerHTML='<div class="ai-label">✦ Juraij AI</div>'+text.replace(/\n/g,'<br>');
+  else d.textContent=text;
+  chatMessages.appendChild(d);
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+}
+
+function sendSugg(btn){ document.getElementById('chatInput').value=btn.textContent; sendChat(); }
+
+async function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const q=inp.value.trim(); if(!q) return;
+  inp.value='';
+  appendMsg(q,'user');
+  typingEl.style.display='flex';
+  chatMessages.scrollTop=chatMessages.scrollHeight;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system:`You are Juraij AI — a warm, friendly English learning assistant on the Juraij book and English website.
+Help users with: English grammar, vocabulary, writing, speaking, book recommendations, and study tips.
+Keep answers clear, encouraging, and well-structured. Use simple language with examples.
+If the user writes in Urdu or Hindi, respond in the same language (Urdu/Hindi).
+Always be supportive and motivating for learners.`,
+        messages:[{role:'user',content:q}]
+      })
+    });
+    const data=await res.json();
+    typingEl.style.display='none';
+    const reply=data.content?.[0]?.text||'Sorry, I could not answer. Please try again!';
+    appendMsg(reply,'ai');
+  } catch(err){
+    typingEl.style.display='none';
+    appendMsg('Oops! Something went wrong. Please try again 🙏','ai');
+  }
+}
+</script>
+</body>
+</html>
